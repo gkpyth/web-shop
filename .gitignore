@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.env
+
+# PyCharm
+.idea/
+
+# Virtual environment
+venv/
+.venv/
+
+# Pygame / build
+*.pyc
+build/
+dist/
+*.egg-info/
