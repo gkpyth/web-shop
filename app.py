@@ -1,6 +1,6 @@
 from flask import Flask
 from dotenv import load_dotenv
-from extensions import db, login_manager
+from extensions import db, login_manager, bcrypt
 import os
 
 load_dotenv()
@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
 
 db.init_app(app)
 login_manager.init_app(app)
+bcrypt.init_app(app)
 login_manager.login_view = 'login'
 
 from models import *

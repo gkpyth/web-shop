@@ -1,4 +1,4 @@
-from extensions import db, login_manager
+from extensions import db, login_manager, bcrypt
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
@@ -18,10 +18,10 @@ class User(UserMixin, db.Model):
 
     # SECURITY: passwords are always hashed, never stored plain
     def set_password(self, password):
-        self.password = generate_password_hash(password, method='pbkdf2:sha256')
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self.password, password)
+        return bcrypt.check_password_hash(self.password, password)
 
     cart_items = db.relationship('CartItem', backref='user', lazy=True)
     orders = db.relationship('Order', backref='user', lazy=True)
