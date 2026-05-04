@@ -1,8 +1,10 @@
+from urllib.parse import urlsplit
+
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app
 from extensions import db
-from models import User, Product
+from models import User, Product, CartItem
 from forms import RegisterForm, LoginForm, ProductForm
 from functools import wraps
 
@@ -137,3 +139,84 @@ def toggle_product(product_id):
     db.session.commit()
     flash('Product updated!', 'success')
     return redirect(url_for('admin_products'))
+
+
+@app.route('/cart')
+@login_required
+def cart():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    return render_template('cart.html', cart_items=cart_items, total=total)
+
+
+@app.route('/cart/add/<int:product_id>', methods=['POST'])
+@login_required
+def add_to_cart(product_id):
+    product = Product.query.get_or_404(product_id)
+
+    # SECURITY: server-side stock check, never trust the client
+    if product.stock < 1:
+        flash('Sorry, this product is out of stock.', 'danger')
+        return redirect(url_for('product_detail', product_id=product_id))
+
+    cart_item = CartItem.query.filter_by(
+        user_id=current_user.id,
+        product_id=product_id
+    ).first()
+
+    if cart_item:
+        # SECURITY: check stock before incrementing
+        if cart_item.quantity >= product.stock:
+            flash('Not enough stock available.', 'danger')
+            return redirect(url_for('product_detail', product_id=product_id))
+        cart_item += 1
+    else:
+        cart_item = CartItem(
+            user_id=current_user.id,
+            product_id=product_id,
+            quantity=1
+        )
+        db.session.add(cart_item)
+
+    db.session.commit()
+    flash(f'{product.name} added to cart.', 'success')
+    return redirect(url_for('cart'))
+
+
+@app.route('/cart/update/<int:item_id>', methods=['POST'])
+@login_required
+def update_cart(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+
+    # SECURITY: ensure this cart item belongs to current user
+    if cart_item.user_id != current_user.id:
+        flash('Unauthorized.', 'danger')
+        return redirect(url_for('cart'))
+
+    quantity = request.form.get('quantity', type=int)
+
+    if not quantity or quantity < 1:
+        db.session.delete(cart_item)
+    elif quantity > cart_item.product.stock:
+        flash('Not enough stock available.', 'danger')
+    else:
+        cart_item.quantity = quantity
+
+    db.session.commit()
+    return redirect(url_for('cart'))
+
+
+@app.route('/cart/remove/<int:item_id>', methods=['POST'])
+@login_required
+def remove_from_cart(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+
+    # SECURITY: ensure this cart item belonds to current user
+    if cart_item.user_id != current_user.id:
+        flash('Unauthorized.', 'danger')
+        return redirect(url_for('cart'))
+
+    db.session.delete(cart_item)
+    db.session.commit()
+    flash('Item removed from cart.', 'success')
+    return redirect(url_for('cart'))

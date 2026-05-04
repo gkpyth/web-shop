@@ -8,10 +8,14 @@
     <p>${{ "%.2f"|format(product.price) }}</p>
     <p>In stock: {{ product.stock }}</p>
     {% if current_user.is_authenticated %}
-        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
-            {{ form.hidden_tag() if form }}
-            <button type="submit">Add to Cart</button>
-        </form>
+        {% if product.stock > 0 %}
+            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                {{ form.hidden_tag() if form }}
+                <button type="submit">Add to Cart</button>
+            </form>
+        {% else %}
+            <p>Out of stock</p>
+        {% endif %}
     {% else %}
         <a href="{{ url_for('login') }}">Login to purchase</a>
     {% endif %}
