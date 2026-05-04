@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import app
 from extensions import db
 from models import User, Product, CartItem
-from forms import RegisterForm, LoginForm, ProductForm
+from forms import RegisterForm, LoginForm, ProductForm, EmptyForm
 from functools import wraps
 
 
@@ -81,7 +81,8 @@ def shop():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template('product_detail.html', product=product)
+    form = EmptyForm()
+    return render_template('product_detail.html', product=product, form=form)
 
 
 @app.route('/admin/products')
@@ -146,7 +147,8 @@ def toggle_product(product_id):
 def cart():
     cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
     total = sum(item.product.price * item.quantity for item in cart_items)
-    return render_template('cart.html', cart_items=cart_items, total=total)
+    form = EmptyForm()
+    return render_template('cart.html', cart_items=cart_items, total=total, form=form)
 
 
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
