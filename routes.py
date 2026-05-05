@@ -1,12 +1,12 @@
-from urllib.parse import urlsplit
-
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app
 from extensions import db
-from models import User, Product, CartItem
+from models import User, Product, CartItem, Order, OrderItem
 from forms import RegisterForm, LoginForm, ProductForm, EmptyForm
 from functools import wraps
+import stripe
+import os
 
 
 # SECURITY: custom decorator to protect admin-only routes
@@ -223,3 +223,120 @@ def remove_from_cart(item_id):
     db.session.commit()
     flash('Item removed from cart.', 'success')
     return redirect(url_for('cart'))
+
+
+@app.route('/checkout')
+@login_required
+def checkout():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+
+    if not cart_items:
+        flash('Your cart is empty.', 'warning')
+        return redirect(url_for('cart'))
+
+    # SECURITY: build line items server-side from DB prices
+    # never trust prices sent from the client
+    line_items = []
+    for item in cart_items:
+        line_items.append({
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {
+                    'name': item.product.name,
+                },
+                # SECURITY: Stripe expects price in cents, convert here
+                'unit_amount': int(item.product.price * 100),
+            },
+            'quantity': item.quantity,
+        })
+
+    # create a pending order in the DB before redirecting to Stripe
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    order = Order(
+        user_id=current_user.id,
+        total=total,
+        status='pending'
+    )
+    db.session.add(order)
+    db.session.flush()      # get order.id without full commit
+
+    for item in cart_items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            price_at_purchase=item.product.price
+        )
+        db.session.add(order_item)
+
+    # Create Stripe session
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=line_items,
+        mode='payment',
+        success_url=url_for('checkout_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('checkout_cancel', _external=True),
+    )
+
+    # Store Stripe session ID on the order
+    order.stripe_session_id = session.id
+    db.session.commit()
+
+    return redirect(session.url, code=303)
+
+
+@app.route('/checkout/success')
+@login_required
+def checkout_success():
+    return render_template('checkout_success.html')
+
+
+@app.route('/checkout/cancel')
+@login_required
+def checkout_cancel():
+    flash('Payment cancelled. Your cart has been saved.', 'warning')
+    return redirect(url_for('cart'))
+
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        # SECURITY: verify webhook signature before doing anything
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.getenv('STRIPE_WEBHOOK_SECRET')
+        )
+    except ValueError:
+        # Invalid payload
+        return '', 400
+    except stripe.error.SignatureVerificationError:
+        # SECURITY: reject requests that don't match Stripe's signature
+        return '', 400
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        handle_successful_payment(session)
+
+    return '', 200
+
+
+def handle_successful_payment(session):
+    order = Order.query.filter_by(stripe_session_id=session['id']).first()
+    if not order:
+        return
+
+    # Update order status
+    order.status = 'complete'
+
+    # SECURITY: decrement stock server-side after confirmed payment
+    for item in order.items:
+        product = Product.query.get(item.product_id)
+        if product:
+            product.stock = max(0, product.stock - item.quantity)   # avoids weird artifacts (e.g. negative numbers) from showing up if for some reason, quantity exceeded stock - shouldn't but it's defensive coding
+
+    # Clear the user's cart
+    CartItem.query.filter_by(user_id=order.user_id).delete()
+
+    db.session.commit()
