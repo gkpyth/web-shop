@@ -200,7 +200,8 @@ def update_cart(item_id):
     if not quantity or quantity < 1:
         db.session.delete(cart_item)
     elif quantity > cart_item.product.stock:
-        flash('Not enough stock available.', 'danger')
+        cart_item.quantity = cart_item.product.stock
+        flash(f'Only {cart_item.product.stock} items available. Quantity adjusted.', 'warning')
     else:
         cart_item.quantity = quantity
 
