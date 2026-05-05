@@ -357,3 +357,10 @@ def handle_successful_payment(session):
     CartItem.query.filter_by(user_id=order.user_id).delete()
 
     db.session.commit()
+
+
+@app.route('/orders')
+@login_required
+def orders():
+    user_orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    return render_template('orders.html', orders=user_orders)
