@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import app
 from extensions import db
 from models import User, Product, CartItem, Order, OrderItem
-from forms import RegisterForm, LoginForm, ProductForm, EmptyForm
+from forms import RegisterForm, LoginForm, ProductForm
 from functools import wraps
 from urllib.parse import urlparse
 import stripe
@@ -84,8 +84,7 @@ def shop():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    form = EmptyForm()
-    return render_template('product_detail.html', product=product, form=form)
+    return render_template('product_detail.html', product=product)
 
 
 @app.route('/admin/products')
@@ -134,7 +133,7 @@ def edit_product(product_id):
     return render_template('edit_product.html', form=form, product=product)
 
 
-@app.route('/admin/products/toggle/<int:product_id>')
+@app.route('/admin/products/toggle/<int:product_id>', methods=['POST'])
 @login_required
 @admin_required
 def toggle_product(product_id):
@@ -150,8 +149,7 @@ def toggle_product(product_id):
 def cart():
     cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
     total = sum(item.product.price * item.quantity for item in cart_items)
-    form = EmptyForm()
-    return render_template('cart.html', cart_items=cart_items, total=total, form=form)
+    return render_template('cart.html', cart_items=cart_items, total=total)
 
 
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
@@ -217,7 +215,7 @@ def update_cart(item_id):
 def remove_from_cart(item_id):
     cart_item = CartItem.query.get_or_404(item_id)
 
-    # SECURITY: ensure this cart item belonds to current user
+    # SECURITY: ensure this cart item belongs to current user
     if cart_item.user_id != current_user.id:
         flash('Unauthorized.', 'danger')
         return redirect(url_for('cart'))

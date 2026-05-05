@@ -10,7 +10,7 @@
     {% if current_user.is_authenticated %}
         {% if product.stock > 0 %}
             <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
-                {{ form.hidden_tag() if form }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit">Add to Cart</button>
             </form>
         {% else %}

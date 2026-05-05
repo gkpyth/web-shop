@@ -16,7 +16,7 @@
                 <td>${{ "%.2f"|format(item.product.price) }}</td>
                 <td>
                     <form method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
-                        {{ form.hidden_tag() if form }}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="number" name="quantity" value="{{ item.quantity }}">
                         <button type="submit">Update</button>
                     </form>
@@ -24,7 +24,7 @@
                 <td>${{ "%.2f"|format(item.product.price * item.quantity) }}</td>
                 <td>
                     <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
-                        {{ form.hidden_tag() if form }}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit">Remove</button>
                     </form>
                 </td>

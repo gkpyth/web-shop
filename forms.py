@@ -23,7 +23,3 @@ class ProductForm(FlaskForm):
     image_url = StringField('Image URL')
     stock = IntegerField('Stock', validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField('Save Product')
-
-
-class EmptyForm(FlaskForm):
-    pass

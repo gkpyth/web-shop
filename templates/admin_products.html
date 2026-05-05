@@ -14,9 +14,10 @@
             <td>{{ 'Yes' if product.is_active else 'No' }}</td>
             <td>
                 <a href="{{ url_for('edit_product', product_id=product.id) }}">Edit</a>
-                <a href="{{ url_for('toggle_product', product_id=product.id) }}">
-                    {{ 'Deactivate' if product.is_active else 'Activate' }}
-                </a>
+                <form method="POST" action="{{ url_for('toggle_product', product_id=product.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">{{ 'Deactivate' if product.is_active else 'Activate' }}</button>
+                </form>
             </td>
         </tr>
         {% endfor %}
