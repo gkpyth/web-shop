@@ -237,6 +237,15 @@ def checkout():
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('cart'))
 
+    # SECURITY: re-validate stock server-side before creating Stripe session
+    for item in cart_items:
+        if not item.product.is_active:
+            flash(f'"{item.product.name}" is no longer available.', 'warning')
+            return redirect(url_for('cart'))
+        if item.product.stock < item.quantity:
+            flash(f'"{item.product.name}" no longer has enough stock. Please update your cart.', 'warning')
+            return redirect(url_for('cart'))
+
     # SECURITY: build line items server-side from DB prices
     # never trust prices sent from the client
     line_items = []
