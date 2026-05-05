@@ -3,7 +3,6 @@ from flask import Flask
 from dotenv import load_dotenv
 from extensions import db, login_manager, bcrypt
 import os
-import os
 
 load_dotenv()
 

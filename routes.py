@@ -5,6 +5,7 @@ from extensions import db
 from models import User, Product, CartItem, Order, OrderItem
 from forms import RegisterForm, LoginForm, ProductForm, EmptyForm
 from functools import wraps
+from urllib.parse import urlparse
 import stripe
 import os
 
@@ -61,6 +62,8 @@ def login():
         login_user(user)
         # SECURITY: redirect to intended page after login
         next_page = request.args.get('next')
+        if next_page and urlparse(next_page).netloc != '':
+            next_page = None    # reject external URLS
         return redirect(next_page or url_for('home'))
     return render_template('login.html', form=form)
 
@@ -250,37 +253,18 @@ def checkout():
             'quantity': item.quantity,
         })
 
-    # create a pending order in the DB before redirecting to Stripe
-    total = sum(item.product.price * item.quantity for item in cart_items)
-    order = Order(
-        user_id=current_user.id,
-        total=total,
-        status='pending'
-    )
-    db.session.add(order)
-    db.session.flush()      # get order.id without full commit
-
-    for item in cart_items:
-        order_item = OrderItem(
-            order_id=order.id,
-            product_id=item.product_id,
-            quantity=item.quantity,
-            price_at_purchase=item.product.price
-        )
-        db.session.add(order_item)
-
-    # Create Stripe session
+    # Create Stripe session with user_id in metadata
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=line_items,
         mode='payment',
+        # Attach user_id as metadata so webhook knows whose cart to process
+        metadata= {
+            'user_id': current_user.id
+        },
         success_url=url_for('checkout_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('checkout_cancel', _external=True),
     )
-
-    # Store Stripe session ID on the order
-    order.stripe_session_id = session.id
-    db.session.commit()
 
     return redirect(session.url, code=303)
 
@@ -323,15 +307,34 @@ def webhook():
 
 
 def handle_successful_payment(session):
-    order = Order.query.filter_by(stripe_session_id=session['id']).first()
-    if not order:
+    user_id = session['metadata']['user_id']
+    cart_items = CartItem.query.filter_by(user_id=user_id).all()
+
+    if not cart_items:
         return
 
-    # Update order status
-    order.status = 'complete'
+    total = sum(item.product.price * item.quantity for item in cart_items)
+
+    # SECURITY: Order only created after confirmed payment
+    order = Order(
+        user_id=user_id,
+        total=total,
+        status='complete',
+        stripe_session_id=session['id']
+    )
+    db.session.add(order)
+    db.session.flush()
 
     # SECURITY: decrement stock server-side after confirmed payment
-    for item in order.items:
+    for item in cart_items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            price_at_purchase=item.product.price
+        )
+        db.session.add(order_item)
+
         product = Product.query.get(item.product_id)
         if product:
             product.stock = max(0, product.stock - item.quantity)   # avoids weird artifacts (e.g. negative numbers) from showing up if for some reason, quantity exceeded stock - shouldn't but it's defensive coding
