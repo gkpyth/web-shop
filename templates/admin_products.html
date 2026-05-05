@@ -1,25 +1,67 @@
 {% extends 'base.html' %}
+{% block title %}Manage Products — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Manage Products</h1>
-    <a href="{{ url_for('add_product') }}">Add New Product</a>
-    <table>
-        <tr>
-            <th>Name</th><th>Price</th><th>Stock</th><th>Active</th><th>Actions</th>
-        </tr>
-        {% for product in products %}
-        <tr>
-            <td>{{ product.name }}</td>
-            <td>${{ "%.2f"|format(product.price) }}</td>
-            <td>{{ product.stock }}</td>
-            <td>{{ 'Yes' if product.is_active else 'No' }}</td>
-            <td>
-                <a href="{{ url_for('edit_product', product_id=product.id) }}">Edit</a>
-                <form method="POST" action="{{ url_for('toggle_product', product_id=product.id) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit">{{ 'Deactivate' if product.is_active else 'Activate' }}</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+<div class="page-content">
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Manage Products</h1>
+                <p>{{ products|length }} product{{ 's' if products|length != 1 }} total</p>
+            </div>
+            <a href="{{ url_for('add_product') }}" class="btn btn-accent">+ Add Product</a>
+        </div>
+
+        {% if products %}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td><strong>{{ product.name }}</strong></td>
+                    <td>${{ "%.2f"|format(product.price) }}</td>
+                    <td>{{ product.stock }}</td>
+                    <td>
+                        {% if product.is_active %}
+                            <span class="status-pill active">Active</span>
+                        {% else %}
+                            <span class="status-pill inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="admin-actions">
+                            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-outline btn-sm">Edit</a>
+                            <form method="POST" action="{{ url_for('toggle_product', product_id=product.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline btn-sm btn-toggle">
+                                    {{ 'Deactivate' if product.is_active else 'Activate' }}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.25rem; display:block;">
+                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <h3>No products yet</h3>
+            <p>Add your first product to get started.</p>
+            <a href="{{ url_for('add_product') }}" class="btn btn-accent">Add Product</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

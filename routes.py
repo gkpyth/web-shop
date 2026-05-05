@@ -6,8 +6,17 @@ from models import User, Product, CartItem, Order, OrderItem
 from forms import RegisterForm, LoginForm, ProductForm
 from functools import wraps
 from urllib.parse import urlparse
+from datetime import datetime
 import stripe
 import os
+
+
+@app.context_processor
+def inject_globals():
+    cart_count = 0
+    if current_user.is_authenticated:
+        cart_count = CartItem.query.filter_by(user_id=current_user.id).count()
+    return {'cart_count': cart_count, 'current_year': datetime.now().year}
 
 
 # SECURITY: custom decorator to protect admin-only routes
@@ -23,7 +32,8 @@ def admin_required(f):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    featured = Product.query.filter_by(is_active=True).limit(4).all()
+    return render_template('home.html', featured=featured)
 
 
 @app.route('/register', methods=['GET', 'POST'])

@@ -3,23 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Shop</title>
+    <title>{% block title %}Brewed & Co.{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('home') }}">Home</a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('register') }}">Register</a>
-        {% endif %}
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="{{ url_for('home') }}" class="nav-brand">Brewed <span>&</span> Co.</a>
+
+            <ul class="nav-center">
+                <li><a href="{{ url_for('shop') }}">Shop</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('orders') }}">My Orders</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    <li><a href="{{ url_for('admin_products') }}">Admin</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="nav-right">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('cart') }}" class="nav-cart">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 01-8 0"/>
+                        </svg>
+                        Cart
+                        {% if cart_count > 0 %}
+                            <span class="cart-badge">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="nav-divider"></div>
+                    <a href="{{ url_for('logout') }}" class="nav-link-sm">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link-sm">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Register</a>
+                {% endif %}
+            </div>
+        </div>
     </nav>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-            <p class="{{ category }}">{{ message }}</p>
-        {% endfor %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endwith %}
-    {% block content %}{% endblock %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>Built with Python &amp; Flask by <span>Ghaleb Khadra</span> &middot; {{ current_year }}</p>
+    </footer>
+
 </body>
 </html>

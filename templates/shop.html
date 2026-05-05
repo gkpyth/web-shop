@@ -1,19 +1,57 @@
 {% extends 'base.html' %}
+{% block title %}Shop — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Shop</h1>
-    <div class="products">
-        {% for product in products %}
-            <div class="product-card">
-                {% if product.image_url %}
-                    <img src="{{ product.image_url }}" alt="{{ product.name }}">
-                {% endif %}
-                <h2>{{ product.name }}</h2>
-                <p>{{ product.description }}</p>
-                <p>${{ "%.2f"|format(product.price) }}</p>
-                <a href="{{ url_for('product_detail', product_id=product.id) }}">View</a>
+<div class="page-content">
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>The Shop</h1>
+                <p>{{ products|length }} product{{ 's' if products|length != 1 }}</p>
+            </div>
+        </div>
+
+        {% if products %}
+            <div class="products-grid">
+                {% for product in products %}
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-card">
+                    <div class="product-card-image">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="product-card-image-placeholder">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+                                    <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-card-name">{{ product.name }}</div>
+                        <p class="product-card-desc">{{ product.description }}</p>
+                    </div>
+                    <div class="product-card-footer">
+                        <span class="product-price">${{ "%.2f"|format(product.price) }}</span>
+                        {% if product.stock == 0 %}
+                            <span style="font-size:0.78rem; color:var(--secondary);">Out of stock</span>
+                        {% else %}
+                            <span class="btn btn-outline btn-sm">View</span>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
             </div>
         {% else %}
-            <p>No products available.</p>
-        {% endfor %}
+            <div class="empty-state">
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.25rem; display:block;">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <h3>Nothing here yet</h3>
+                <p>Products are on their way. Check back soon.</p>
+            </div>
+        {% endif %}
     </div>
+</div>
 {% endblock %}

@@ -1,40 +1,82 @@
 {% extends 'base.html' %}
+{% block title %}Cart — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Your Cart</h1>
-    {% if cart_items %}
-        <table>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Remove</th>
-            </tr>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.product.name }}</td>
-                <td>${{ "%.2f"|format(item.product.price) }}</td>
-                <td>
-                    <form method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
+<div class="page-content">
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Your Cart</h1>
+                <p>{{ cart_items|length }} item{{ 's' if cart_items|length != 1 }}</p>
+            </div>
+        </div>
+
+        {% if cart_items %}
+        <div class="cart-layout">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item">
+                    <div class="cart-item-image">
+                        {% if item.product.image_url %}
+                            <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="cart-item-image-placeholder">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+                                    <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <div class="cart-item-name">{{ item.product.name }}</div>
+                        <div class="cart-item-price">${{ "%.2f"|format(item.product.price) }} each</div>
+                    </div>
+
+                    <form class="quantity-form" method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="number" name="quantity" value="{{ item.quantity }}">
-                        <button type="submit">Update</button>
+                        <input class="quantity-input" type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ item.product.stock }}">
+                        <button type="submit" class="btn btn-outline btn-sm">Update</button>
                     </form>
-                </td>
-                <td>${{ "%.2f"|format(item.product.price * item.quantity) }}</td>
-                <td>
+
+                    <div class="cart-item-subtotal">${{ "%.2f"|format(item.product.price * item.quantity) }}</div>
+
                     <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit">Remove</button>
+                        <button type="submit" class="btn btn-ghost">✕</button>
                     </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        <h3>Total: ${{ "%.2f"|format(total) }}</h3>
-        <a href="{{ url_for('checkout') }}">Proceed to Checkout</a>
-    {% else %}
-        <p>Your cart is empty.</p>
-        <a href="{{ url_for('shop') }}">Continue Shopping</a>
-    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <div class="cart-summary-title">Order Summary</div>
+                {% for item in cart_items %}
+                <div class="cart-summary-row">
+                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                    <span>${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
+                </div>
+                {% endfor %}
+                <div class="cart-summary-total">
+                    <span>Total</span>
+                    <span>${{ "%.2f"|format(total) }}</span>
+                </div>
+                <a href="{{ url_for('checkout') }}" class="btn btn-accent btn-full">Proceed to Checkout</a>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.25rem">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <h3>Your cart is empty</h3>
+            <p>Looks like you haven't added anything yet.</p>
+            <a href="{{ url_for('shop') }}" class="btn btn-accent">Browse Products</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

@@ -1,6 +1,23 @@
 {% extends 'base.html' %}
+{% block title %}Payment Cancelled — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Payment Cancelled</h1>
-    <p>No worries — your cart has been saved.</p>
-    <a href="{{ url_for('cart') }}">Return to Cart</a>
+<div class="page-content">
+    <div class="container">
+        <div class="result-page">
+            <div class="result-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+            </div>
+            <h1>Payment Cancelled</h1>
+            <p>No worries — your cart has been saved. Come back whenever you're ready.</p>
+            <div class="result-actions">
+                <a href="{{ url_for('cart') }}" class="btn btn-primary">Return to Cart</a>
+                <a href="{{ url_for('shop') }}" class="btn btn-outline">Keep Browsing</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,11 +1,46 @@
 {% extends 'base.html' %}
+{% block title %}Register — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Register</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {{ form.email.label }} {{ form.email() }}
-        {{ form.password.label }} {{ form.password() }}
-        {{ form.confirm_password.label }} {{ form.confirm_password() }}
-        {{ form.submit() }}
-    </form>
+<div class="auth-page">
+    <div class="form-container">
+        <div class="form-card">
+            <h1>Create account</h1>
+            <p class="form-subtitle">Join Brewed & Co. and start shopping.</p>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.email.label }}
+                    {{ form.email(placeholder="your@email.com") }}
+                    {% for error in form.email.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(placeholder="Min. 8 characters") }}
+                    {% for error in form.password.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.confirm_password.label }}
+                    {{ form.confirm_password(placeholder="Repeat your password") }}
+                    {% for error in form.confirm_password.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class_="btn btn-accent btn-full") }}
+            </form>
+
+            <p class="form-footer">
+                Already have an account? <a href="{{ url_for('login') }}">Login</a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

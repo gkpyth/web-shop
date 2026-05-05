@@ -1,23 +1,60 @@
 {% extends 'base.html' %}
+{% block title %}Add Product — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Add Product</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
+<div class="page-content">
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Add Product</h1>
+                <p>Fill in the details below to add a new product to the shop.</p>
+            </div>
+            <a href="{{ url_for('admin_products') }}" class="btn btn-outline">← Back</a>
+        </div>
 
-        {{ form.name.label }} {{ form.name() }}
-        {% for error in form.name.errors %}<span style="color:red">{{ error }}</span>{% endfor %}
+        <div class="admin-form-card">
+            <form method="POST">
+                {{ form.hidden_tag() }}
 
-        {{ form.description.label }} {{ form.description() }}
-        {% for error in form.description.errors %}<span style="color:red">{{ error }}</span>{% endfor %}
+                <div class="form-group">
+                    {{ form.name.label }}
+                    {{ form.name(placeholder="e.g. Single Origin Ethiopia") }}
+                    {% for error in form.name.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
 
-        {{ form.price.label }} {{ form.price(placeholder="e.g. 9.99") }}
-        {% for error in form.price.errors %}<span style="color:red">{{ error }}</span>{% endfor %}
+                <div class="form-group">
+                    {{ form.description.label }}
+                    {{ form.description(placeholder="Describe the product...") }}
+                    {% for error in form.description.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
 
-        {{ form.image_url.label }} {{ form.image_url() }}
+                <div class="form-group">
+                    {{ form.price.label }}
+                    {{ form.price(placeholder="e.g. 14.99") }}
+                    {% for error in form.price.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
 
-        {{ form.stock.label }} {{ form.stock() }}
-        {% for error in form.stock.errors %}<span style="color:red">{{ error }}</span>{% endfor %}
+                <div class="form-group">
+                    {{ form.image_url.label }}
+                    {{ form.image_url(placeholder="https://...") }}
+                </div>
 
-        {{ form.submit() }}
-    </form>
+                <div class="form-group">
+                    {{ form.stock.label }}
+                    {{ form.stock(placeholder="e.g. 50") }}
+                    {% for error in form.stock.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class_="btn btn-accent") }}
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

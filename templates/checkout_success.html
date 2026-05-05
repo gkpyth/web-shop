@@ -1,7 +1,22 @@
 {% extends 'base.html' %}
+{% block title %}Order Confirmed — Brewed & Co.{% endblock %}
 {% block content %}
-    <h1>Payment Successful!</h1>
-    <p>Thank you for your order. You'll receive a confirmation shortly.</p>
-    <a href="{{ url_for('shop') }}">Continue Shopping</a>
-    <a href="{{ url_for('orders') }}">View My Orders</a>
+<div class="page-content">
+    <div class="container">
+        <div class="result-page">
+            <div class="result-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h1>Order Confirmed</h1>
+            <p>Thank you for your purchase. Your order is being processed and will be with you soon.</p>
+            <div class="result-actions">
+                <a href="{{ url_for('orders') }}" class="btn btn-primary">View My Orders</a>
+                <a href="{{ url_for('shop') }}" class="btn btn-outline">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

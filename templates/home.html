@@ -1,4 +1,54 @@
 {% extends 'base.html' %}
+{% block title %}Brewed & Co. — Coffee & Lifestyle{% endblock %}
 {% block content %}
-    <h1>Welcome to Flask Shop</h1>
+
+    <section class="hero">
+        <div class="hero-inner">
+            <p class="hero-eyebrow">Est. 2025 · Crafted with intention</p>
+            <h1>Life is better<br>with <em>good taste</em></h1>
+            <p>Thoughtfully sourced coffee, accessories, and lifestyle goods for the people who appreciate the details.</p>
+            <a href="{{ url_for('shop') }}" class="btn btn-accent">Shop the Collection</a>
+        </div>
+    </section>
+
+    {% if featured %}
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-eyebrow">Handpicked for you</p>
+                <h2>Featured Products</h2>
+            </div>
+            <div class="products-grid">
+                {% for product in featured %}
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-card">
+                    <div class="product-card-image">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="product-card-image-placeholder">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+                                    <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-card-name">{{ product.name }}</div>
+                        <p class="product-card-desc">{{ product.description }}</p>
+                    </div>
+                    <div class="product-card-footer">
+                        <span class="product-price">${{ "%.2f"|format(product.price) }}</span>
+                        <span class="btn btn-outline btn-sm">View</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <div style="text-align:center; margin-top:2.5rem;">
+                <a href="{{ url_for('shop') }}" class="btn btn-outline">View All Products</a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
 {% endblock %}
