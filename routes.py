@@ -316,6 +316,11 @@ def webhook():
 
 
 def handle_successful_payment(session):
+    # SECURITY: duplicate webhook protection - ignore duplicate webhook events
+    existing_order = Order.query.filter_by(stripe_session_id=session['id']).first()
+    if existing_order:
+        return
+
     user_id = session['metadata']['user_id']
     cart_items = CartItem.query.filter_by(user_id=user_id).all()
 
