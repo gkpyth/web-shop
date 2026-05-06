@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, FloatField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, FloatField, IntegerField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange, URL, Optional
 
 
@@ -22,4 +22,22 @@ class ProductForm(FlaskForm):
     price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0)])
     image_url = StringField('Image URL', validators=[Optional(), URL()])
     stock = IntegerField('Stock', validators=[DataRequired(), NumberRange(min=0)])
+    category = SelectField('Category', choices=[
+        ('coffee', 'Coffee'),
+        ('drinkware', 'Drinkware'),
+        ('gear', 'Gear'),
+        ('lifestyle', 'Lifestyle')
+    ])
+    subcategory = SelectField('Subcategory', choices=[
+        ('whole-bean', 'Whole Bean'),
+        ('ground', 'Ground'),
+        ('cold-brew', 'Cold Brew'),
+        ('mugs', 'Mugs'),
+        ('tumblers', 'Tumblers & Thermoses'),
+        ('brewing', 'Brewing'),
+        ('grinding', 'Grinding'),
+        ('apparel', 'Apparel'),
+        ('accessories', 'Accessories'),
+        ('home', 'Home')
+    ])
     submit = SubmitField('Save Product')

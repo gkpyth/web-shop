@@ -35,6 +35,8 @@ class Product(db.Model):
     image_url = db.Column(db.String(500))
     stock = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    category = db.Column(db.String(50), nullable=True)
+    subcategory = db.Column(db.String(50), nullable=True)
 
 
 class CartItem(db.Model):

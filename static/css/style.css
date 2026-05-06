@@ -838,3 +838,60 @@ p  { color: var(--secondary); }
   .nav-center { display: none; }
   .hero { padding: 5rem 1.5rem 6rem; }
 }
+
+/* ── Shop Filter Nav ── */
+.shop-filter-nav {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    position: sticky;
+    top: var(--nav-height);
+    background: rgba(250,248,244,0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 90;
+    margin-bottom: 0;
+}
+
+.shop-filter-nav a {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--secondary);
+    padding: 0.6rem 1.1rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all var(--transition);
+}
+
+.shop-filter-nav a:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* ── Shop Sections ── */
+.shop-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: calc(var(--nav-height) + 48px);
+}
+
+.shop-section-header {
+    margin-top: 10px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.shop-subsection {
+    margin-bottom: 2.5rem;
+}
+
+.shop-subsection-title {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--secondary);
+    margin-bottom: 1.25rem;
+}

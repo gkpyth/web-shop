@@ -116,7 +116,9 @@ def add_product():
             description=form.description.data,
             price=form.price.data,
             image_url=form.image_url.data,
-            stock=form.stock.data
+            stock=form.stock.data,
+            category=form.category.data,
+            subcategory=form.subcategory.data
         )
         db.session.add(product)
         db.session.commit()
@@ -137,6 +139,8 @@ def edit_product(product_id):
         product.price = form.price.data
         product.image_url = form.image_url.data
         product.stock = form.stock.data
+        product.category = form.category.data
+        product.subcategory = form.subcategory.data
         db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('admin_products'))
