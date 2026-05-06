@@ -24,6 +24,7 @@ with app.app_context():
     db.create_all()
 
 from routes import *
+csrf.exempt('routes.webhook')
 
 if __name__ == '__main__':
     app.run(debug=os.getenv("DEBUG") == "1")
