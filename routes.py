@@ -197,7 +197,7 @@ def add_to_cart(product_id):
 
     db.session.commit()
     flash(f'{product.name} added to cart.', 'success')
-    return redirect(url_for('cart'))
+    return redirect(url_for('shop') + f'#{product.category}')
 
 
 @app.route('/cart/update/<int:item_id>', methods=['POST'])
