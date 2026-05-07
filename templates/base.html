@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Brewed & Co.{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -23,7 +24,7 @@
 
             <div class="nav-right">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('cart') }}" class="nav-cart">
+                    <a href="{{ url_for('cart') }}" class="nav-cart" id="navCartBtn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
                             <line x1="3" y1="6" x2="21" y2="6"/>
@@ -44,6 +45,33 @@
         </div>
     </nav>
 
+    <!-- Cart Drawer -->
+    <div class="cart-drawer-overlay" id="cartOverlay"></div>
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-drawer-header">
+            <h3>Your Cart</h3>
+            <button class="cart-drawer-close" id="cartClose" aria-label="Close cart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="cart-drawer-body" id="cartDrawerBody">
+            <div class="cart-drawer-loading">Loading...</div>
+        </div>
+
+        <div class="cart-drawer-footer" id="cartDrawerFooter" style="display:none;">
+            <div class="cart-drawer-total">
+                <span>Total</span>
+                <span id="cartDrawerTotal">$0.00</span>
+            </div>
+            <a href="{{ url_for('checkout') }}" class="btn btn-accent btn-full">Checkout</a>
+            <a href="{{ url_for('cart') }}" class="btn btn-outline btn-full" style="margin-top:0.5rem;">View Full Cart</a>
+        </div>
+    </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-container">
@@ -61,6 +89,8 @@
     <footer class="footer">
         <p>Built with Python &amp; Flask by <span>Ghaleb Khadra</span> &middot; {{ current_year }}</p>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 </body>
 </html>

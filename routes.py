@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app
 from extensions import db
@@ -73,7 +73,7 @@ def login():
         # SECURITY: redirect to intended page after login
         next_page = request.args.get('next')
         if next_page and urlparse(next_page).netloc != '':
-            next_page = None    # reject external URLS
+            next_page = None    # reject external URLs
         return redirect(next_page or url_for('home'))
     return render_template('login.html', form=form)
 
@@ -166,6 +166,25 @@ def cart():
     return render_template('cart.html', cart_items=cart_items, total=total)
 
 
+@app.route('/cart/data')
+@login_required
+def cart_data():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    items = []
+    for item in cart_items:
+        items.append({
+            'id': item.id,
+            'product_id': item.product_id,
+            'name': item.product.name,
+            'price': item.product.price,
+            'quantity': item.quantity,
+            'subtotal': item.product.price * item.quantity,
+            'image_url': item.product.image_url or ''
+        })
+    return jsonify({'items': items, 'total': total, 'count': len(items)})
+
+
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
 @login_required
 def add_to_cart(product_id):
@@ -197,7 +216,7 @@ def add_to_cart(product_id):
 
     db.session.commit()
     flash(f'{product.name} added to cart.', 'success')
-    return redirect(url_for('shop') + f'#{product.category}')
+    return redirect(url_for('shop', cart='open') + f'#{product.category}')
 
 
 @app.route('/cart/update/<int:item_id>', methods=['POST'])
@@ -207,6 +226,8 @@ def update_cart(item_id):
 
     # SECURITY: ensure this cart item belongs to current user
     if cart_item.user_id != current_user.id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return '', 403
         flash('Unauthorized.', 'danger')
         return redirect(url_for('cart'))
 
@@ -221,6 +242,11 @@ def update_cart(item_id):
         cart_item.quantity = quantity
 
     db.session.commit()
+
+    # SECURITY: return 200 for AJAX requests, redirect for standard form submissions
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 200
+
     return redirect(url_for('cart'))
 
 
@@ -231,11 +257,18 @@ def remove_from_cart(item_id):
 
     # SECURITY: ensure this cart item belongs to current user
     if cart_item.user_id != current_user.id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return '', 403
         flash('Unauthorized.', 'danger')
         return redirect(url_for('cart'))
 
     db.session.delete(cart_item)
     db.session.commit()
+
+    # SECURITY: return 200 for AJAX requests, redirect for standard form submissions
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 200
+
     flash('Item removed from cart.', 'success')
     return redirect(url_for('cart'))
 

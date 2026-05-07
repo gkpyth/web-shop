@@ -19,3 +19,6 @@ dist/
 
 # Database
 instance/
+
+# Local Assets
+_local_assets/

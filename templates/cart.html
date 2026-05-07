@@ -12,9 +12,9 @@
 
         {% if cart_items %}
         <div class="cart-layout">
-            <div class="cart-items">
+            <div class="cart-items" id="cartPageItems">
                 {% for item in cart_items %}
-                <div class="cart-item">
+                <div class="cart-item" id="cart-item-{{ item.id }}">
                     <div class="cart-item-image">
                         {% if item.product.image_url %}
                             <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
@@ -33,18 +33,15 @@
                         <div class="cart-item-price">${{ "%.2f"|format(item.product.price) }} each</div>
                     </div>
 
-                    <form class="quantity-form" method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input class="quantity-input" type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ item.product.stock }}">
-                        <button type="submit" class="btn btn-outline btn-sm">Update</button>
-                    </form>
+                    <div class="drawer-qty-controls">
+                        <button class="drawer-qty-btn cart-page-qty-btn" data-action="decrease" data-id="{{ item.id }}">−</button>
+                        <input class="drawer-qty-input cart-page-qty-input" type="number" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" data-id="{{ item.id }}">
+                        <button class="drawer-qty-btn cart-page-qty-btn" data-action="increase" data-id="{{ item.id }}">+</button>
+                    </div>
 
-                    <div class="cart-item-subtotal">${{ "%.2f"|format(item.product.price * item.quantity) }}</div>
+                    <div class="cart-item-subtotal" id="cart-subtotal-{{ item.id }}">${{ "%.2f"|format(item.product.price * item.quantity) }}</div>
 
-                    <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-ghost">✕</button>
-                    </form>
+                    <button class="drawer-item-remove cart-page-remove" data-id="{{ item.id }}" title="Remove">✕</button>
                 </div>
                 {% endfor %}
             </div>
@@ -52,14 +49,14 @@
             <div class="cart-summary">
                 <div class="cart-summary-title">Order Summary</div>
                 {% for item in cart_items %}
-                <div class="cart-summary-row">
-                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
-                    <span>${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
+                <div class="cart-summary-row" id="summary-row-{{ item.id }}">
+                    <span id="summary-label-{{ item.id }}">{{ item.product.name }} × {{ item.quantity }}</span>
+                    <span id="summary-price-{{ item.id }}">${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
                 </div>
                 {% endfor %}
                 <div class="cart-summary-total">
                     <span>Total</span>
-                    <span>${{ "%.2f"|format(total) }}</span>
+                    <span id="cart-page-total">${{ "%.2f"|format(total) }}</span>
                 </div>
                 <a href="{{ url_for('checkout') }}" class="btn btn-accent btn-full">Proceed to Checkout</a>
                 <a href="{{ url_for('shop') }}" class="btn btn-outline btn-full" style="margin-top: 0.5rem;">Continue Shopping</a>
