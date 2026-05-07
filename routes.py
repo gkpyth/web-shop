@@ -333,7 +333,7 @@ def checkout_success():
 @login_required
 def checkout_cancel():
     flash('Payment cancelled. Your cart has been saved.', 'warning')
-    return redirect(url_for('cart'))
+    return render_template('checkout_cancel.html')
 
 
 @app.route('/webhook', methods=['POST'])
