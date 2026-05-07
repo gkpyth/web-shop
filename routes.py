@@ -232,20 +232,33 @@ def update_cart(item_id):
         return redirect(url_for('cart'))
 
     quantity = request.form.get('quantity', type=int)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if not quantity or quantity < 1:
         db.session.delete(cart_item)
-    elif quantity > cart_item.product.stock:
-        cart_item.quantity = cart_item.product.stock
-        flash(f'Only {cart_item.product.stock} items available. Quantity adjusted.', 'warning')
-    else:
-        cart_item.quantity = quantity
+        db.session.commit()
+        if is_ajax:
+            return jsonify({'deleted': True})
+        return redirect(url_for('cart'))
 
+    capped = False
+    if quantity > cart_item.product.stock:
+        quantity = cart_item.product.stock
+        capped = True
+
+    cart_item.quantity = quantity
     db.session.commit()
 
-    # SECURITY: return 200 for AJAX requests, redirect for standard form submissions
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return '', 200
+    if is_ajax:
+        return jsonify({
+            'deleted': False,
+            'actual_quantity': cart_item.quantity,
+            'capped': capped,
+            'message': f'Only {cart_item.quantity} items available. Quantity adjusted.' if capped else None
+        })
+
+    if capped:
+        flash(f'Only {cart_item.product.stock} items available. Quantity adjusted.', 'warning')
 
     return redirect(url_for('cart'))
 

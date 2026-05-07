@@ -112,7 +112,9 @@ function updateCartItem(itemId, quantity) {
             'X-Requested-With': 'XMLHttpRequest'
         },
         body: `quantity=${quantity}&csrf_token=${getCsrfToken()}`
-    }).then(() => loadCartData());
+    })
+    .then(res => res.json())
+    .then(() => loadCartData());
 }
 
 function removeCartItem(itemId) {
@@ -192,7 +194,19 @@ function updateCartItemOnPage(itemId, quantity) {
             'X-Requested-With': 'XMLHttpRequest'
         },
         body: `quantity=${quantity}&csrf_token=${getCsrfToken()}`
-    }).then(() => refreshCartPageTotals());
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.deleted) {
+            removeCartItemFromPage(itemId);
+            return;
+        }
+       // Update input to reflect server's actual value in case it was capped
+       const input = document.querySelector(`.cart-page-qty-input[data-id="${itemId}"]`);
+       if (input) input.value = data.actual_quantity;
+       if (data.capped && data.message) showToast(data.message, 'warning');
+       refreshCartPageTotals();
+    });
 }
 
 function removeCartItemFromPage(itemId) {
@@ -278,4 +292,19 @@ document.addEventListener('keydown', e => {
 // Auto-open if ?cart=open in URL
 if (new URLSearchParams(window.location.search).get('cart') === 'open') {
     openCart();
+}
+
+function showToast(message, type = 'warning') {
+    let container = document.querySelector('.flash-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'flash-container';
+        const nav = document.querySelector('.nav');
+        nav.insertAdjacentElement('afterend', container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `flash ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
 }
